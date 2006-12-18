@@ -1,0 +1,95 @@
+<?xml version="1.0"?>
+<project name="myProject" default="makejar" >
+<property name="package" value="daffodilreplicator" />
+<property name="source" value=".\src" />
+<property name="destdir" value=".\classes" />
+<property name="jar.path" value=".\lib"/>
+
+<!-- set path to include the necessary jar files for javac -->
+  <path id="project.class.path">
+    
+    <pathelement path="./lib/log4j.jar" />
+  </path>
+  
+
+    <target name="help">
+	<echo>
+	    This shows how to use this XML file for making Replicator.jar
+
+	    Running the file
+          ----------------
+	  edit this build.xml and change the various paths set for the files which are rquired 
+          for making the final Replicater JAR file.You can either stored the required files at the default 
+          path or can change the XML file itself.
+
+	     
+	    Work done using this XML file:
+          
+	    1: ant deletepath 		:: 	it is used for Deleting the classes.
+
+          2: ant copy    	 	:: 	it is required for copying all the extra files required 
+                               		for Daffodil Replicator into the directory where the classes have 
+                               		been stored. The default path where these files are stored is 
+                               		source.Copy Target Depend on the compilerepconsole.
+
+	
+	    3: ant compilerepconsole	:: 	it is used for compiling the repconsole source.
+				               	The default source directory is .\com\daffodilwoods\repconsole.
+		            		   	repconsole target depend on compilereplicator.
+		
+	    4: ant compilereplicator	:: 	it is used for compiling the replicator source.
+				               	The default source directory is .\com\daffodilwoods\replicator.
+		            		   	repconsole target depend on compilereplicator.
+
+          5: ant RMI      		:: 	it is used for making the stub and skeleton files.
+
+	    6: ant makeJAR  		:: 	It is used for making the final jar file which is stored as
+							./Replicator.jar. 
+                               		
+	
+	</echo>
+
+    </target>
+
+
+
+<target name="compile"> 
+	<mkdir dir="${destdir}"/>
+	<javac srcdir="${source}"
+         destdir="${destdir}" 
+	   fork="true"
+	   debug="on"
+	   memoryMaximumSize="128m">
+  <classpath refid="project.class.path"/>
+    </javac>
+
+</target>
+
+<target name="copy" depends="compile">
+	<copy file="${source}\com\daffodilwoods\replication\RepCode_en_US.properties" todir="${destdir}\com\daffodilwoods\replication" />
+	<copy file="${source}\com\daffodilwoods\replication\RepCode.properties" todir="${destdir}\com\daffodilwoods\replication" />
+<copy file="${source}\com\daffodilwoods\repconsole\secretKey.obj" todir="${destdir}\com\daffodilwoods\repconsole" />
+      <copy todir="${destdir}\icons">
+		<fileset dir="${source}\icons" excludes="**/*.java"/>
+	</copy>
+   
+</target>
+
+<target name="rmi">
+	<rmic classname="com.daffodilwoods.replication.ReplicationServer" classpath="${destdir}" base="${destdir}"/>
+	<rmic classname="com.daffodilwoods.replication.Publication" classpath="${destdir}"  base="${destdir}"/>
+	<rmic classname="com.daffodilwoods.replication.Subscription" classpath="${destdir}" base="${destdir}"/>  	
+	<rmic classname="com.daffodilwoods.replication.FileUpload" classpath="${destdir}" base="${destdir}"/>  	
+
+</target>
+
+<target name="makeJAR" depends="copy">
+	<antcall target="rmi"/>
+	<jar jarfile=".\Replicator.jar" basedir="${destdir}"/>
+</target>
+
+</project>
+
+
+
+
